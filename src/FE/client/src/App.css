@@ -1,0 +1,125 @@
+.App {
+  text-align: center;
+  display: flex;
+  background-color: #282c34;
+  color: rgb(0, 0, 0);
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 0;
+
+}
+
+.sidemenu{
+  width: 250px;
+  padding: 10px;
+  background-color: #000000;
+  border: #f16cfd 2px dashed;
+}
+
+.chatbox{
+  flex: 1;
+  background-color: #000000;
+  position: relative;
+  overflow-y: scroll;
+}
+
+.chatbox::-webkit-scrollbar {
+  width: 0.5em;
+}
+
+.chatbox::-webkit-scrollbar-track {
+  background-color: #F5F5F5;
+}
+
+.chatbox::-webkit-scrollbar-thumb {
+  background-color: #8d8d8d;
+}
+
+
+.side-menu-button{
+  padding: 11px 11px 13px 11px;
+  border-radius: 5px;
+  text-align: left;
+  transition: ease 0.25s all;
+  background-color: #f16cfd;
+}
+
+.side-menu-button:hover {
+  background-color: #f16cfd90;
+}
+
+.side-menu-button span{
+  padding-left: 5px;
+  padding-right: 10px;
+}
+
+.chat-input-holder{
+  padding: 22px;
+  padding-right: 60px;
+  padding-left : 40px;
+  position: sticky;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size:15px;
+  backdrop-filter: blur(1px);
+  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1));
+  
+}
+
+.chat-input-textarea{
+  background-color: #f16cfdfd;
+  width: 100%;
+  border: none;
+  padding: 15px;
+  border-radius: 5px;
+  color: rgb(0, 0, 0);
+  font-size: 1.25em;
+  outline: none;
+  /* box-shadow: 0 0 8px 0 rgba(0, 0, 0, 0.3); */
+
+}
+
+.chat-log{
+  text-align: left;
+  min-height: 85%;
+}
+
+.chat-message {
+  color: rgb(243, 159, 251);
+}
+
+.chat-message.chatgpt{
+  background-color: rgb(243, 159, 251);
+  color: black;
+}
+
+.chat-message-center{
+  padding: 24px;
+  display: flex;
+}
+
+.avatar{
+  background-color: white;
+  border-radius: 50%;
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+}
+
+.avatar.chatgpt{
+  background-color: rgb(28, 217, 113);
+  border-radius: 50%;
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+}
+
+.message{
+  padding-left: 40px;
+  padding-right: 40px;
+  
+}
+
