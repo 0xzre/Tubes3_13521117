@@ -1,6 +1,6 @@
-package BE
+package Algorithm
 
-func kmpSearch(text string, pattern string) int {
+func KmpSearch(text string, pattern string) int {
     m := len(pattern)
     if m == 0 {
         return 0
