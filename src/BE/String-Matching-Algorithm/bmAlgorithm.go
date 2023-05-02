@@ -1,6 +1,4 @@
-package main
-
-import "fmt"
+package Algorithm
 
 func bmSearch(text, pattern string) int {
 	last := buildLast(pattern)
@@ -44,17 +42,4 @@ func min(a, b int) int {
 		return a
 	}
 	return b
-}
-
-func main() {
-	pattern := "APA YANG DIMAKSUD STIMA"
-	text := "APA YANG ITUUUUU STIMA"
-
-	pattern2 := "APA YANG ITUUUUU STIMA"
-
-	result := bmSearch(text, pattern)
-	fmt.Println(result)
-
-	result2 := bmSearch(text, pattern2)
-	fmt.Println(result2)
 }

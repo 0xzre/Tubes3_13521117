@@ -1,22 +1,40 @@
 package main
 
 import (
-	"BE/controllers/questionController"
-	"BE/models"
+	"os"
 
+	"BE/controller"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
-	r := gin.Default()
-	models.ConnectDatabase()
 
-	r.GET("/api/questions", questionController.IndexQuestion)
-	r.GET("/api/question/:pertanyaan", questionController.ShowQuestion)
-	r.POST("/api/question", questionController.CreateQuestion)
-	r.PUT("/api/question/:pertanyaan", questionController.UpdateQuestion)
-	r.DELETE("/api/question", questionController.DeleteQuestion)
+	port := os.Getenv("PORT")
 
-	r.Run()
+	if port == "" {
+		port = "8000"
+	}
+
+	router := gin.New()
+	router.Use(gin.Logger())
+
+	router.Use(cors.Default())
+
+	// these are the endpoints
+	//C
+	router.POST("/question/create", controller.AddQuestion)
+	//R
+	router.GET("/answer/:answer", controller.GetAnswerByQuestion)
+	router.GET("/questions", controller.GetQuestions)
+	router.GET("/question/:id/", controller.GetQuestionById)
+	//U
+	router.PUT("/answer/update/:id", controller.UpdateAnswer)
+	router.PUT("/question/update/:id", controller.UpdateQuestion)
+	//D
+	router.DELETE("/question/delete/:id", controller.DeleteQuestion)
+
+	//this runs the server and allows it to listen to requests.
+	router.Run("localhost:" + port)
 }
