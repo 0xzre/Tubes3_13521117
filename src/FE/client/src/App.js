@@ -23,11 +23,17 @@ function App() {
     setChatLog(prevLog => [...prevLog, { user: "me", message: `${input}` }]);
     console.log("input berhasil");
     setInput("");
-    getAnswer(input.toLowerCase());
+    //TODO
+    //MAKE TOGGLE KMP AND BM
+    //if toggle KMP
+    getAnswerKMP(input.toLowerCase());
+    
+    //if toggle BM
+    // getAnswerBM(input.toLowerCase());
   }
   
-  function getAnswer(question){
-    var url = `http://localhost:5000/answer/${question}`;
+  function getAnswerKMP(question){
+    var url = `http://localhost:5000/answer/KMP/${question}`;
     axios.get(url, {
       responseType: 'json'
     }).then(response => {

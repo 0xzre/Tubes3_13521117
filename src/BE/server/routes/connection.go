@@ -15,20 +15,17 @@ import (
 // DBinstance func
 func DBinstance() *mongo.Client {
 	err := godotenv.Load(".env")
-
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	MongoDb := os.Getenv("MONGODB_URL")
-
 	client, err := mongo.NewClient(options.Client().ApplyURI(MongoDb))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-
 	defer cancel()
 	err = client.Connect(ctx)
 	if err != nil {
@@ -39,10 +36,8 @@ func DBinstance() *mongo.Client {
 	return client
 }
 
-// OpenCollection is a function makes a connection with a collection in the database
+// Make connection with a collection in the database
 func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collection {
-
-	var collection *mongo.Collection = client.Database("tubes3-stima").Collection(collectionName)
-
+	var collection *mongo.Collection = client.Database(os.Getenv("DATABASE_NAME")).Collection(collectionName)
 	return collection
 }

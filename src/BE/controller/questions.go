@@ -58,40 +58,10 @@ func AddQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// get all questions
-func GetQuestions(c *gin.Context) {
-
-	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
-
-	var questions []bson.M
-
-	cursor, err := questionCollection.Find(ctx, bson.M{})
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-
-	if err = cursor.All(ctx, &questions); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-
-	defer cancel()
-
-	fmt.Println(questions)
-
-	c.JSON(http.StatusOK, questions)
-}
-
 // get answer by the question
-func GetAnswerByQuestion(c *gin.Context) {
+func GetResponseKMP(c *gin.Context) {
 
 	question := c.Params.ByName("question")
-
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
@@ -111,6 +81,27 @@ func GetAnswerByQuestion(c *gin.Context) {
 		return
 	}
 
+	//TODO
+	//CALCULATOR
+	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return hasilnya
+
+	//TODO
+	//TANGGAL
+	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return harinya
+
+	//TODO
+	//Tambah pertanyaan
+	//REGEX dan cara parsingnya, trus panggil method Add to database
+
+	//TODO
+	//Hapus pertanyaan
+	//REGEX dan cara parsingnya, trus panggil method delete database
+
+	//TODO
+	//Update pertanyaan
+	//REGEX dan cara parsingnya, trus panggil method update database
+
+	//sementara masih manggil make KMP:
 	if questions != nil {
 		for _, elmt := range questions {
 			fmt.Println(elmt)
@@ -155,32 +146,10 @@ func GetAnswerByQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// get an question by its id
-func GetQuestionById(c *gin.Context) {
-
-	questionID := c.Params.ByName("id")
-	docID, _ := primitive.ObjectIDFromHex(questionID)
-
-	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
-
-	var question bson.M
-
-	if err := questionCollection.FindOne(ctx, bson.M{"_id": docID}).Decode(&question); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
-
-	fmt.Println(question)
-
-	c.JSON(http.StatusOK, question)
-}
-
 // update answer for an question
 func UpdateAnswer(c *gin.Context) {
 
-	questionID := c.Params.ByName("id")
+	questionID := c.Params.ByName("question")
 	docID, _ := primitive.ObjectIDFromHex(questionID)
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -217,7 +186,7 @@ func UpdateAnswer(c *gin.Context) {
 // update the question
 func UpdateQuestion(c *gin.Context) {
 
-	questionID := c.Params.ByName("id")
+	questionID := c.Params.ByName("answer")
 	docID, _ := primitive.ObjectIDFromHex(questionID)
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -259,7 +228,7 @@ func UpdateQuestion(c *gin.Context) {
 // delete an question given the id
 func DeleteQuestion(c *gin.Context) {
 
-	orderID := c.Params.ByName("id")
+	orderID := c.Params.ByName("question")
 	docID, _ := primitive.ObjectIDFromHex(orderID)
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)

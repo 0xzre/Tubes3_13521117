@@ -26,14 +26,13 @@ func main() {
 	//C
 	router.POST("/question/create", controller.AddQuestion)
 	//R
-	router.GET("/answer/:question", controller.GetAnswerByQuestion)
-	router.GET("/questions", controller.GetQuestions)
-	router.GET("/question/:id/", controller.GetQuestionById)
+	router.GET("/answer/KMP/:question", controller.GetResponseKMP)
+	// router.GET("/answer/BM/:question", controller.GetResponseBM)
 	//U
-	router.PUT("/answer/update/:id", controller.UpdateAnswer)
-	router.PUT("/question/update/:id", controller.UpdateQuestion)
+	router.PUT("/answer/update/:question", controller.UpdateAnswer)
+	router.PUT("/question/update/:answer", controller.UpdateQuestion)
 	//D
-	router.DELETE("/question/delete/:id", controller.DeleteQuestion)
+	router.DELETE("/question/delete/:question", controller.DeleteQuestion)
 
 	//this runs the server and allows it to listen to requests.
 	router.Run("localhost:" + port)
