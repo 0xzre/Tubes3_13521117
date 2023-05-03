@@ -1,6 +1,7 @@
 import './App.css';
 import './normal.css';
 import { useRef, useState, useEffect } from 'react'
+import axios from "axios"
 
 function App() {
 
@@ -19,9 +20,32 @@ function App() {
 
   function handleSubmit(e){
     e.preventDefault();
-    setChatLog([...chatLog, { user: "me", message: `${input}` }]);
+    setChatLog(prevLog => [...prevLog, { user: "me", message: `${input}` }]);
+    console.log("input berhasil");
     setInput("");
-
+    getAnswer(input.toLowerCase());
+  }
+  
+  function getAnswer(question){
+    var url = `http://localhost:5000/answer/${question}`;
+    axios.get(url, {
+      responseType: 'json'
+    }).then(response => {
+      if(response.status === 200){
+        if (response.data == null){
+          setChatLog(prevLog => [...prevLog, { user: "gpt", message: "Pertanyaan tidak ditemukan, silakan tambahkan pertanyaan"}])
+        } else{
+          const firstAnswer = response.data[0].answer;
+          setChatLog(prevLog => [...prevLog, { user: "gpt", message: firstAnswer}])
+          console.log(response.data)
+          // console.log(firstAnswer)
+          console.log("dapat jawaban")
+        }
+      }
+      else{
+        console.log("No question found in database")
+      }
+    })
   }
 
   function clearLog(){
