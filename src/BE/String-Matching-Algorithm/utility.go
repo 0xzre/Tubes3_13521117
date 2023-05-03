@@ -1,6 +1,6 @@
 package Algorithm
 
-func LongestCommonSubstring(strA string, strB string) int {
+func LongestCommonSubstring(strA string, strB string) float64 {
 	lengthA := len(strA)
 	lengthB := len(strB)
 	dp := make([][]int, lengthA+1)
@@ -21,7 +21,7 @@ func LongestCommonSubstring(strA string, strB string) int {
 	}
 
 	percentage := float64(maxLen) / float64(lengthB) * 100
-	return int(percentage)
+	return percentage
 }
 
 func max(a int, b int) int {

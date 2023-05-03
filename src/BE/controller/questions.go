@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	Algorithm "BE/String-Matching-Algorithm"
 	"BE/server/models"
 	"BE/server/routes"
 
@@ -113,8 +114,41 @@ func GetAnswerByQuestion(c *gin.Context) {
 	if questions != nil {
 		for _, elmt := range questions {
 			fmt.Println(elmt)
-			if question == elmt["question"] {
+			if Algorithm.KmpSearch(question, string(elmt["question"].(string))) != -1 {
 				result = append(result, elmt)
+				fmt.Println("kmp exact match")
+				break
+			} else {
+				fmt.Println(Algorithm.LongestCommonSubstring(question, string(elmt["question"].(string))))
+				if Algorithm.LongestCommonSubstring(question, string(elmt["question"].(string))) >= 85.0 {
+					result = append(result, elmt)
+					fmt.Println("lcs match > 85%")
+					break
+				}
+			}
+		}
+
+		if len(result) != 1 {
+			flag := bson.M{"answer": "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"}
+			result = append(result, flag)
+			fmt.Println("adding flag")
+			max := Algorithm.LongestCommonSubstring(question, string(questions[0]["question"].(string)))
+
+			for i := 1; i < len(questions); i++ {
+				if max < Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string))) {
+					max = Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string)))
+				}
+			}
+
+			for i := 0; i < len(questions); i++ {
+				if Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string))) == max {
+					if len(result) == 4 {
+						break
+					} else {
+						result = append(result, questions[i])
+						fmt.Println("adding recommendation")
+					}
+				}
 			}
 		}
 	}

@@ -35,11 +35,22 @@ function App() {
         if (response.data == null){
           setChatLog(prevLog => [...prevLog, { user: "gpt", message: "Pertanyaan tidak ditemukan, silakan tambahkan pertanyaan"}])
         } else{
-          const firstAnswer = response.data[0].answer;
-          setChatLog(prevLog => [...prevLog, { user: "gpt", message: firstAnswer}])
-          console.log(response.data)
-          // console.log(firstAnswer)
-          console.log("dapat jawaban")
+          if (response.data[0].answer === "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"){
+            var respon = response.data[0].answer
+            for (let i = 1; i < response.data.length; i++) {
+              let elmt = i.toString() + ". " + response.data[i].question;
+              respon = respon + elmt
+              if (i < response.data.length -1){
+                respon = respon + '\n'
+              }
+            }
+            setChatLog(prevLog => [...prevLog, { user: "gpt", message: respon}])
+          } else{
+            const firstAnswer = response.data[0].answer;
+            setChatLog(prevLog => [...prevLog, { user: "gpt", message: firstAnswer}])
+            console.log(response.data)
+            console.log("dapat jawaban")
+          }
         }
       }
       else{
