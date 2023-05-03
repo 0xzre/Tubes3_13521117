@@ -14,7 +14,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	if port == "" {
-		port = "8000"
+		port = "5000"
 	}
 
 	router := gin.New()
@@ -26,7 +26,7 @@ func main() {
 	//C
 	router.POST("/question/create", controller.AddQuestion)
 	//R
-	router.GET("/answer/:answer", controller.GetAnswerByQuestion)
+	router.GET("/answer/:question", controller.GetAnswerByQuestion)
 	router.GET("/questions", controller.GetQuestions)
 	router.GET("/question/:id/", controller.GetQuestionById)
 	//U

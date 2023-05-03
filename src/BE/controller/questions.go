@@ -94,9 +94,10 @@ func GetAnswerByQuestion(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
+	var result []bson.M
 	var questions []bson.M
 
-	cursor, err := questionCollection.Find(ctx, bson.M{"server": question})
+	cursor, err := questionCollection.Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
@@ -109,11 +110,15 @@ func GetAnswerByQuestion(c *gin.Context) {
 		return
 	}
 
-	defer cancel()
-
-	fmt.Println(questions)
-
-	c.JSON(http.StatusOK, questions)
+	if questions != nil {
+		for _, elmt := range questions {
+			fmt.Println(elmt)
+			if question == elmt["question"] {
+				result = append(result, elmt)
+			}
+		}
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 // get an question by its id
@@ -132,8 +137,6 @@ func GetQuestionById(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-
-	defer cancel()
 
 	fmt.Println(question)
 
@@ -172,8 +175,6 @@ func UpdateAnswer(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-
-	defer cancel()
 
 	c.JSON(http.StatusOK, result.ModifiedCount)
 
@@ -218,8 +219,6 @@ func UpdateQuestion(c *gin.Context) {
 		return
 	}
 
-	defer cancel()
-
 	c.JSON(http.StatusOK, result.ModifiedCount)
 }
 
@@ -239,8 +238,6 @@ func DeleteQuestion(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-
-	defer cancel()
 
 	c.JSON(http.StatusOK, result.DeletedCount)
 
