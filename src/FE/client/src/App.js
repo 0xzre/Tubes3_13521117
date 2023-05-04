@@ -26,22 +26,27 @@ function App() {
     //TODO
     //MAKE TOGGLE KMP AND BM
     //if toggle KMP
-    getAnswerKMP(input.toLowerCase());
+    getAnswerKMP(input);
     
     //if toggle BM
     // getAnswerBM(input.toLowerCase());
   }
   
   function getAnswerKMP(question){
-    var url = `http://localhost:5000/answer/KMP/${question}`;
+    var encodedInput = encodeURIComponent(question)
+    var url = `http://localhost:5000/answer/KMP/${encodedInput}`;
     axios.get(url, {
       responseType: 'json'
     }).then(response => {
-      if(response.status === 200){
-        if (response.data == null){
+      if(response.status === 200)
+      {
+        if (response.data == null)
+        {
           setChatLog(prevLog => [...prevLog, { user: "gpt", message: "Pertanyaan tidak ditemukan, silakan tambahkan pertanyaan"}])
-        } else{
-          if (response.data[0].answer === "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"){
+        }
+        else
+        {
+          if (respon === "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"){
             var respon = response.data[0].answer
             for (let i = 1; i < response.data.length; i++) {
               let elmt = i.toString() + ". " + response.data[i].question;
@@ -51,11 +56,16 @@ function App() {
               }
             }
             setChatLog(prevLog => [...prevLog, { user: "gpt", message: respon}])
-          } else{
-            const firstAnswer = response.data[0].answer;
-            setChatLog(prevLog => [...prevLog, { user: "gpt", message: firstAnswer}])
-            console.log(response.data)
-            console.log("dapat jawaban")
+          }
+          else
+          {
+            if (response.data[0]["answer"] == null){
+              const dataStr = response.data.substring(response.data[0]);
+              const data = JSON.parse(dataStr);
+              var respon = data[0]["answer"]
+              setChatLog(prevLog => [...prevLog, { user: "gpt", message: respon}])
+              console.log("dapat jawaban")
+            }
           }
         }
       }
@@ -63,6 +73,11 @@ function App() {
         console.log("No question found in database")
       }
     })
+    .catch(error => {
+      console.log(error);
+    });
+
+      
   }
 
   function clearLog(){
@@ -104,6 +119,7 @@ function App() {
           className="chat-input-holder">
             <form onSubmit={handleSubmit}>
               <input
+                placeholder='Type your input here'
                 value={input}
                 onChange={(e) => setInput(e.target.value) }
                 className="chat-input-textarea"
