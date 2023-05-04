@@ -202,6 +202,7 @@ func DeleteQuestion(c *gin.Context, questionDeleted string, questions []bson.M) 
 	var result []bson.M
 
 	for _, elmt := range questions {
+		fmt.Println(string(elmt["question"].(string)))
 		if Algorithm.KmpSearch(questionDeleted, string(elmt["question"].(string))) != -1 ||
 			Algorithm.LongestCommonSubstring(questionDeleted, string(elmt["question"].(string))) >= 85.0 {
 
@@ -214,12 +215,13 @@ func DeleteQuestion(c *gin.Context, questionDeleted string, questions []bson.M) 
 
 			flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " berhasil dihapus!"}
 			result = append(result, flag)
+			c.JSON(http.StatusOK, result)
+			return
 
-		} else {
-			flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " tidak ditemukan sehingga tidak bisa dihapus!"}
-			result = append(result, flag)
 		}
-		c.JSON(http.StatusOK, result)
-		return
 	}
+
+	flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " tidak ditemukan sehingga tidak bisa dihapus!"}
+	result = append(result, flag)
+	c.JSON(http.StatusOK, result)
 }

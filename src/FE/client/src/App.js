@@ -46,7 +46,7 @@ function App() {
         }
         else
         {
-          if (respon === "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"){
+          if (response.data[0].answer === "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"){
             var respon = response.data[0].answer
             for (let i = 1; i < response.data.length; i++) {
               let elmt = i.toString() + ". " + response.data[i].question;
@@ -62,8 +62,11 @@ function App() {
             if (response.data[0]["answer"] == null){
               const dataStr = response.data.substring(response.data[0]);
               const data = JSON.parse(dataStr);
-              var respon = data[0]["answer"]
-              setChatLog(prevLog => [...prevLog, { user: "gpt", message: respon}])
+              setChatLog(prevLog => [...prevLog, { user: "gpt", message: data[0]["answer"]}])
+              console.log("dapat jawaban")
+            }
+            else {
+              setChatLog(prevLog => [...prevLog, { user: "gpt", message: response.data[0]["answer"]}])
               console.log("dapat jawaban")
             }
           }
