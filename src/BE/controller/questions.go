@@ -81,9 +81,8 @@ func GetResponseKMP(c *gin.Context) {
 	parseDelete := regexDelete.FindStringSubmatch(question)
 
 	if matchDelete {
-		// questionDeleted := ""
-		fmt.Println(len(parseDelete))
-		// DeleteQuestion(c, questionDeleted)
+		questionDeleted := parseDelete[1]
+		DeleteQuestion(c, questionDeleted, questions)
 		return
 	}
 
@@ -168,7 +167,7 @@ func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, quest
 				flag := bson.M{"answer": "Pertanyaan " + questionAdded + " sudah ada! Jawaban diupdate menjadi: " + answerAdded}
 				result = append(result, flag)
 			}
-			DeleteQuestion(c, string(elmt["question"].(string)))
+			DeleteQuestion(c, string(elmt["question"].(string)), questions)
 			temp := string(elmt["question"].(string))
 			question.Question = &temp
 			_, insertErr := questionCollection.InsertOne(ctx, question)
@@ -196,53 +195,31 @@ func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, quest
 	c.JSON(http.StatusOK, result)
 }
 
-// update answer for an question
-// func UpdateAnswer(c *gin.Context) {
-
-// 	questionID := c.Params.ByName("question")
-
-// 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-// 	defer cancel()
-
-// 	type Answer struct {
-// 		Server *string `json:"server"`
-// 	}
-
-// 	var answer Answer
-
-// 	if err := c.BindJSON(&answer); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		fmt.Println(err)
-// 		return
-// 	}
-
-// 	result, err := questionCollection.UpdateOne(ctx, bson.M{"_id": docID},
-// 		bson.D{
-// 			{Key: "$set", Value: bson.D{{Key: "server", Value: answer.Server}}},
-// 		},
-// 	)
-
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		fmt.Println(err)
-// 		return
-// 	}
-
-// 	c.JSON(http.StatusOK, result.ModifiedCount)
-
-// }
-
 // delete a question given the user input
-func DeleteQuestion(c *gin.Context, question string) {
+func DeleteQuestion(c *gin.Context, questionDeleted string, questions []bson.M) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
+	var result []bson.M
 
-	result, err := questionCollection.DeleteOne(ctx, bson.M{"question": question})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		fmt.Println(err)
+	for _, elmt := range questions {
+		if Algorithm.KmpSearch(questionDeleted, string(elmt["question"].(string))) != -1 ||
+			Algorithm.LongestCommonSubstring(questionDeleted, string(elmt["question"].(string))) >= 85.0 {
+
+			_, err := questionCollection.DeleteOne(ctx, bson.M{"question": string(elmt["question"].(string))})
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				fmt.Println(err)
+				return
+			}
+
+			flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " berhasil dihapus!"}
+			result = append(result, flag)
+
+		} else {
+			flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " tidak ditemukan sehingga tidak bisa dihapus!"}
+			result = append(result, flag)
+		}
+		c.JSON(http.StatusOK, result)
 		return
 	}
-
-	c.JSON(http.StatusOK, result.DeletedCount)
 }
