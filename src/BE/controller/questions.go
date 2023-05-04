@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"time"
 
 	Algorithm "BE/String-Matching-Algorithm"
@@ -21,22 +22,17 @@ var validate = validator.New()
 
 // Client Database instance
 var Client *mongo.Client = routes.DBinstance()
-
 var questionCollection *mongo.Collection = routes.OpenCollection(Client, "questions")
 
-// add a question
-func AddQuestion(c *gin.Context) {
+// Add a question or update the answer if question already exists
+func AddQuestion(c *gin.Context, questionAdded string, answerAdded string) {
 
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
-
 	var question models.Question
-
-	if err := c.BindJSON(&question); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		fmt.Println(err)
-		return
-	}
+	question.ID = primitive.NewObjectID()
+	question.Question = &questionAdded
+	question.Answer = &answerAdded
 
 	validationErr := validate.Struct(question)
 	if validationErr != nil {
@@ -44,16 +40,14 @@ func AddQuestion(c *gin.Context) {
 		fmt.Println(validationErr)
 		return
 	}
-	question.ID = primitive.NewObjectID()
 
 	result, insertErr := questionCollection.InsertOne(ctx, question)
 	if insertErr != nil {
-		msg := fmt.Sprintf("question was not created")
+		msg := fmt.Sprintf("question was not added")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		fmt.Println(insertErr)
 		return
 	}
-	defer cancel()
 
 	c.JSON(http.StatusOK, result)
 }
@@ -80,6 +74,8 @@ func GetResponseKMP(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
+	//TODO
+	//parse input dgn pemisah titik untuk baca lebih dari satu perintah/pertanyaan
 
 	//TODO
 	//CALCULATOR
@@ -89,17 +85,39 @@ func GetResponseKMP(c *gin.Context) {
 	//TANGGAL
 	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return harinya
 
-	//TODO
-	//Tambah pertanyaan
-	//REGEX dan cara parsingnya, trus panggil method Add to database
+	// Add Question : "tambah pertanyaan .... jawaban ...." or "tambah pertanyaan .... dengan jawaban ...."
+	regexAdd := regexp.MustCompile(`^tambah pertanyaan\s+(.+?)(?:\s+(dengan\s+)?jawaban\s+(.+))`)
+	matchAdd := regexAdd.MatchString(question)
+	parseAdd := regexAdd.FindStringSubmatch(question)
 
-	//TODO
-	//Hapus pertanyaan
-	//REGEX dan cara parsingnya, trus panggil method delete database
+	if matchAdd {
+		questionAdded := parseAdd[1]
+		answerAdded := ""
+		fmt.Println(len(parseAdd))
+		if len(parseAdd) == 3 {
+			answerAdded = parseAdd[2]
+		} else if len(parseAdd) == 4 {
+			answerAdded = parseAdd[3]
+		}
+		AddQuestion(c, questionAdded, answerAdded)
+		return
+	}
 
-	//TODO
-	//Update pertanyaan
-	//REGEX dan cara parsingnya, trus panggil method update database
+	// Delete Question : "hapus pertanyaan ...." or "hapus ...."
+	regexDelete := regexp.MustCompile(`^hapus (?:(pertanyaan )?(.+?)$)`)
+	matchDelete := regexDelete.MatchString(question)
+	parseDelete := regexDelete.FindStringSubmatch(question)
+
+	if matchDelete {
+		questionDeleted := ""
+		if len(parseDelete) == 2 {
+			questionDeleted = parseDelete[1]
+		} else if len(parseDelete) == 3 {
+			questionDeleted = parseDelete[2]
+		}
+		DeleteQuestion(c, questionDeleted)
+		return
+	}
 
 	//sementara masih manggil make KMP:
 	if questions != nil {
@@ -225,17 +243,12 @@ func UpdateQuestion(c *gin.Context) {
 	c.JSON(http.StatusOK, result.ModifiedCount)
 }
 
-// delete an question given the id
-func DeleteQuestion(c *gin.Context) {
-
-	orderID := c.Params.ByName("question")
-	docID, _ := primitive.ObjectIDFromHex(orderID)
-
+// delete an question given the question
+func DeleteQuestion(c *gin.Context, question string) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	result, err := questionCollection.DeleteOne(ctx, bson.M{"_id": docID})
-
+	result, err := questionCollection.DeleteOne(ctx, bson.M{"question": question})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
@@ -243,5 +256,4 @@ func DeleteQuestion(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result.DeletedCount)
-
 }
