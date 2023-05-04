@@ -49,7 +49,26 @@ func GetResponseKMP(c *gin.Context) {
 	//TANGGAL
 	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return harinya
 
-	// Add Question : "tambah pertanyaan .... jawaban ...." or "tambah pertanyaan .... dengan jawaban ...."
+	// Get all listed question in database: "list pertanyaan"
+	regexGetAll := regexp.MustCompile(`^(?:\s+)?list(?:\s+)?pertanyaan(?:\s+)?(.+?)?(?:\s*|\b)$`)
+	matchGetAll := regexGetAll.MatchString(question)
+	if matchGetAll {
+
+		// No questions message
+		if len(questions) == 0 {
+			flag := bson.M{"answer": "Belum ada pertanyaan yang terdaftar!"}
+			result = append(result, flag)
+
+		} else { // Get all questions
+			flag := bson.M{"answer": "List pertanyaan yang telah terdaftar:"}
+			result = append(result, flag)
+			result = append(result, questions...)
+		}
+		c.JSON(http.StatusOK, result)
+		return
+	}
+
+	// Add Question: "tambah pertanyaan .... jawaban ...." or "tambah pertanyaan .... dengan jawaban ...."
 	regexAdd := regexp.MustCompile(`^(?:\s+)?tambah(?:kan)?(?:\s+)?pertanyaan(?:(?:\s+)?(.+?)?(?:(?:\s+dengan)?\s+jawaban(?:nya)?))?(?:\s+)?(.+?)?(?:\s*|\b)$`)
 	matchAdd := regexAdd.MatchString(question)
 	parseAdd := regexAdd.FindStringSubmatch(question)
@@ -69,7 +88,7 @@ func GetResponseKMP(c *gin.Context) {
 		return
 	}
 
-	// Delete Question prompt : "hapus pertanyaan ...." or "hapus ...."
+	// Delete Question prompt: "hapus pertanyaan ...." or "hapus ...."
 	regexDelete := regexp.MustCompile(`^(?:\s+)?(?:meng)?hapus(?:lah)?(?:kan)?(?:\s+)?(?:(?:pertanyaan(?:\s+)?)?(.+?)(?:\s*|\b)$)`)
 	matchDelete := regexDelete.MatchString(question)
 	parseDelete := regexDelete.FindStringSubmatch(question)
