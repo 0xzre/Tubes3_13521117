@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"sort"
 	"time"
 
 	Algorithm "BE/String-Matching-Algorithm"
@@ -22,22 +23,23 @@ var validate = validator.New()
 var Client *mongo.Client = routes.DBinstance()
 var questionCollection *mongo.Collection = routes.OpenCollection(Client, "questions")
 
-// get response by user input using KMP
+// Get response by user input using KMP
 func GetResponseKMP(c *gin.Context) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
+	// Retrieve user input
 	question := c.Params.ByName("question")
 	var result []bson.M
 	var questions []bson.M
 
+	// Revoke all data in database
 	cursor, err := questionCollection.Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
 		return
 	}
-
 	if err = cursor.All(ctx, &questions); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		fmt.Println(err)
@@ -71,58 +73,63 @@ func GetResponseKMP(c *gin.Context) {
 			questionAdded = parseAdd[1]
 			answerAdded = parseAdd[2]
 		}
-		AddQuestion(c, questionAdded, answerAdded, questions)
+		AddQuestionKMP(c, questionAdded, answerAdded, questions)
 		return
 	}
 
-	// Delete Question : "hapus pertanyaan ...." or "hapus ...."
+	// Delete Question prompt : "hapus pertanyaan ...." or "hapus ...."
 	regexDelete := regexp.MustCompile(`^(?:\s+)?(?:meng)?hapus(?:lah)?(?:kan)?(?:\s+)?(?:(?:pertanyaan(?:\s+)?)?(.+?)(?:\s*|\b)$)`)
 	matchDelete := regexDelete.MatchString(question)
 	parseDelete := regexDelete.FindStringSubmatch(question)
 
+	// Match with regex
 	if matchDelete {
 		questionDeleted := parseDelete[1]
-		DeleteQuestion(c, questionDeleted, questions)
+		DeleteQuestionKMP(c, questionDeleted, questions)
 		return
 	}
 
-	//sementara masih manggil make KMP:
 	if questions != nil {
 		for _, elmt := range questions {
-			fmt.Println(elmt)
+
+			// Match using KMP, add into result
+			// fmt.Println(Algorithm.KmpSearch(question, string(elmt["question"].(string))))
 			if Algorithm.KmpSearch(question, string(elmt["question"].(string))) != -1 {
 				result = append(result, elmt)
-				fmt.Println("kmp exact match")
 				break
+
 			} else {
-				fmt.Println(Algorithm.LongestCommonSubstring(question, string(elmt["question"].(string))))
-				if Algorithm.LongestCommonSubstring(question, string(elmt["question"].(string))) >= 85.0 {
+				// Not match KMP but LCS >= 90%, add into result
+				// fmt.Println(Algorithm.LongestCommonSubstring(question, string(elmt["question"].(string))))
+				if Algorithm.LongestCommonSubstring(question, string(elmt["question"].(string))) >= 90.0 {
 					result = append(result, elmt)
-					fmt.Println("lcs match > 85%")
 					break
 				}
 			}
 		}
 
+		// Question not match KMP and LCS < 90%
 		if len(result) != 1 {
-			flag := bson.M{"answer": "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"}
+			flag := bson.M{"answer": "Pertanyaan tidak ditemukan, mungkin maksudnya:"}
 			result = append(result, flag)
-			fmt.Println("adding flag")
-			max := Algorithm.LongestCommonSubstring(question, string(questions[0]["question"].(string)))
+			rank := []float64{}
 
-			for i := 1; i < len(questions); i++ {
-				if max < Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string))) {
-					max = Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string)))
-				}
-			}
-
+			// Get rank of the similiarity using LCS and sort them descending
 			for i := 0; i < len(questions); i++ {
-				if Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string))) == max {
-					if len(result) == 4 {
-						break
-					} else {
-						result = append(result, questions[i])
-						fmt.Println("adding recommendation")
+				rank = append(rank, Algorithm.LongestCommonSubstring(question, string(questions[i]["question"].(string))))
+			}
+			sort.Sort(sort.Reverse(sort.Float64Slice(rank)))
+
+			numOfRecommendation := len(rank)
+			if len(rank) >= 3 {
+				numOfRecommendation = 3
+			}
+			for i := 0; i < numOfRecommendation; i++ {
+				for j := 0; j < len(questions); j++ {
+
+					// Add 3 biggest LCS to result based on rank
+					if Algorithm.LongestCommonSubstring(question, string(questions[j]["question"].(string))) == rank[i] {
+						result = append(result, questions[j])
 					}
 				}
 			}
@@ -131,8 +138,8 @@ func GetResponseKMP(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
-// Add a question or update the answer if question already exists
-func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, questions []bson.M) {
+// Add a question or update the answer if question already exists using KMP
+func AddQuestionKMP(c *gin.Context, questionAdded string, answerAdded string, questions []bson.M) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
@@ -141,6 +148,7 @@ func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, quest
 	question.Question = &questionAdded
 	question.Answer = &answerAdded
 
+	// Validate the question struct
 	validationErr := validate.Struct(question)
 	if validationErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
@@ -149,25 +157,37 @@ func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, quest
 	}
 
 	for _, elmt := range questions {
+
+		// If matching with KMP or LCS >= 90%
+		// fmt.Println(Algorithm.LongestCommonSubstring(questionAdded, string(elmt["question"].(string))))
 		if Algorithm.KmpSearch(questionAdded, string(elmt["question"].(string))) != -1 ||
 			Algorithm.LongestCommonSubstring(questionAdded,
-				string(elmt["question"].(string))) >= 85.0 {
+				string(elmt["question"].(string))) >= 90.0 {
 
-			if answerAdded == "" {
-				if string(elmt["question"].(string)) == "" {
-					flag := bson.M{"answer": "Pertanyaan " + questionAdded + " sudah ada namun belum tersimpan jawaban, silakan update jawaban"}
+			if answerAdded == "" { // Case where user doesn't input the answer yet
+
+				// Question exists but the answer doesn't
+				if string(elmt["answer"].(string)) == "" {
+					flag := bson.M{"answer": "Pertanyaan \"" + elmt["answer"].(string) + "\" sudah ada namun belum tersimpan jawabannya, silakan update jawaban"}
 					result = append(result, flag)
+
 				} else {
-					flag := bson.M{"answer": "Pertanyaan " + questionAdded + " sudah ada dan telah tersimpan jawaban: " + string(elmt["question"].(string))}
+					// Question exists and the answer as well
+					flag := bson.M{"answer": "Pertanyaan \"" + elmt["answer"].(string) + "\" sudah ada dan telah tersimpan jawaban: " + string(elmt["question"].(string))}
 					result = append(result, flag)
 					c.JSON(http.StatusOK, result)
 					return
 				}
-			} else {
-				flag := bson.M{"answer": "Pertanyaan " + questionAdded + " sudah ada! Jawaban diupdate menjadi: " + answerAdded}
+
+			} else { // Update question with new answer
+				flag := bson.M{"answer": "Pertanyaan \"" + elmt["answer"].(string) + "\" sudah ada! Jawaban diupdate menjadi: \"" + answerAdded + "\""}
 				result = append(result, flag)
 			}
-			DeleteQuestion(c, string(elmt["question"].(string)), questions)
+
+			// Delete recent question
+			DeleteQuestionKMP(c, string(elmt["question"].(string)), questions)
+
+			// Re-Add question with new answer
 			temp := string(elmt["question"].(string))
 			question.Question = &temp
 			_, insertErr := questionCollection.InsertOne(ctx, question)
@@ -182,6 +202,7 @@ func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, quest
 		}
 	}
 
+	// Add question to database
 	_, insertErr := questionCollection.InsertOne(ctx, question)
 	if insertErr != nil {
 		msg := "question was not added"
@@ -190,22 +211,30 @@ func AddQuestion(c *gin.Context, questionAdded string, answerAdded string, quest
 		return
 	}
 
-	flag := bson.M{"answer": "Berhasil menambahkan pertanyaan " + questionAdded + " dengan jawaban " + answerAdded}
-	result = append(result, flag)
+	// Add question succeed message
+	if answerAdded == "" {
+		flag := bson.M{"answer": "Berhasil menambahkan pertanyaan \"" + questionAdded + "\" tanpa jawaban. Update untuk menambahkan jawaban"}
+		result = append(result, flag)
+	} else {
+		flag := bson.M{"answer": "Berhasil menambahkan pertanyaan \"" + questionAdded + "\" dengan jawaban \"" + answerAdded + "\""}
+		result = append(result, flag)
+	}
 	c.JSON(http.StatusOK, result)
 }
 
-// delete a question given the user input
-func DeleteQuestion(c *gin.Context, questionDeleted string, questions []bson.M) {
+// Delete a question given the user input using KMP
+func DeleteQuestionKMP(c *gin.Context, questionDeleted string, questions []bson.M) {
 	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 	var result []bson.M
 
 	for _, elmt := range questions {
-		fmt.Println(string(elmt["question"].(string)))
-		if Algorithm.KmpSearch(questionDeleted, string(elmt["question"].(string))) != -1 ||
-			Algorithm.LongestCommonSubstring(questionDeleted, string(elmt["question"].(string))) >= 85.0 {
 
+		// If matching with KMP algorithm or LCS >= 90.0
+		if Algorithm.KmpSearch(questionDeleted, string(elmt["question"].(string))) != -1 ||
+			Algorithm.LongestCommonSubstring(questionDeleted, string(elmt["question"].(string))) >= 90.0 {
+
+			// Delete in database
 			_, err := questionCollection.DeleteOne(ctx, bson.M{"question": string(elmt["question"].(string))})
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -213,15 +242,16 @@ func DeleteQuestion(c *gin.Context, questionDeleted string, questions []bson.M) 
 				return
 			}
 
-			flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " berhasil dihapus!"}
+			// Delete succeed response
+			flag := bson.M{"answer": "Pertanyaan \"" + questionDeleted + "\" berhasil dihapus!"}
 			result = append(result, flag)
 			c.JSON(http.StatusOK, result)
 			return
-
 		}
 	}
 
-	flag := bson.M{"answer": "Pertanyaan " + questionDeleted + " tidak ditemukan sehingga tidak bisa dihapus!"}
+	// Cannot find the question in database
+	flag := bson.M{"answer": "Pertanyaan \"" + questionDeleted + "\" tidak ditemukan sehingga tidak bisa dihapus!"}
 	result = append(result, flag)
 	c.JSON(http.StatusOK, result)
 }
