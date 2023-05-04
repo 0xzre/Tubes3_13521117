@@ -67,14 +67,22 @@ function App() {
           }
           else {
             if (response.data[0]["answer"] == null){
-              const dataStr = response.data.substring(response.data[0]);
-              const data = JSON.parse(dataStr);
-              setChatLog(prevLog => [...prevLog, { user: "gpt", message: data[0]["answer"]}])
-              console.log("dapat jawaban")
+              var dataStr = "";
+              if (!response.data.startsWith('[')){
+                dataStr = response.data.substring(response.data[0]);
+                const data = JSON.parse(dataStr);
+                setChatLog(prevLog => [...prevLog, { user: "gpt", message: data[0]["answer"]}])
+                console.log("dapat jawaban");
+              } else {
+                const dataArray = response.data.replace(/\]\[/g, ',')
+                const data = JSON.parse(dataArray);
+                setChatLog(prevLog => [...prevLog, { user: "gpt", message: data[0]["answer"]}])
+                console.log("dapat jawaban");
+              }
             }
             else {
               setChatLog(prevLog => [...prevLog, { user: "gpt", message: response.data[0]["answer"]}])
-              console.log("dapat jawaban")
+              console.log("dapat jawaban");
           }
         }
       }

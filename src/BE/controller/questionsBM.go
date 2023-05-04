@@ -160,19 +160,19 @@ func AddQuestionBM(c *gin.Context, questionAdded string, answerAdded string, que
 
 				// Question exists but the answer doesn't
 				if string(elmt["answer"].(string)) == "" {
-					flag := bson.M{"answer": "Pertanyaan \"" + elmt["answer"].(string) + "\" sudah ada namun belum tersimpan jawabannya, silakan update jawaban"}
+					flag := bson.M{"answer": "Pertanyaan \"" + elmt["question"].(string) + "\" sudah ada, namun belum tersimpan jawabannya. Silakan update jawaban"}
 					result = append(result, flag)
 
 				} else {
 					// Question exists and the answer as well
-					flag := bson.M{"answer": "Pertanyaan \"" + elmt["answer"].(string) + "\" sudah ada dan telah tersimpan jawaban: " + string(elmt["question"].(string))}
+					flag := bson.M{"answer": "Pertanyaan \"" + elmt["question"].(string) + "\" sudah ada dan telah tersimpan jawaban: \"" + string(elmt["answer"].(string)) + "\""}
 					result = append(result, flag)
 					c.JSON(http.StatusOK, result)
 					return
 				}
 
 			} else { // Update question with new answer
-				flag := bson.M{"answer": "Pertanyaan \"" + elmt["answer"].(string) + "\" sudah ada! Jawaban diupdate menjadi: \"" + answerAdded + "\""}
+				flag := bson.M{"answer": "Pertanyaan \"" + elmt["question"].(string) + "\" sudah ada! Jawaban diupdate menjadi: \"" + answerAdded + "\""}
 				result = append(result, flag)
 			}
 
