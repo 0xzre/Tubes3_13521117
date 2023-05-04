@@ -46,19 +46,26 @@ function App() {
         }
         else
         {
-          if (response.data[0].answer === "Pertanyaan tidak ditemukan, mungkin maksud anda: \n"){
-            var respon = response.data[0].answer
-            for (let i = 1; i < response.data.length; i++) {
-              let elmt = i.toString() + ". " + response.data[i].question;
-              respon = respon + elmt
-              if (i < response.data.length -1){
-                respon = respon + '\n'
+          if (response.data[0].answer != null){
+            if (response.data[0].answer === "Pertanyaan tidak ditemukan, mungkin maksudnya:"){
+              var answer = response.data[0].answer + `<br/>`
+              for (let i = 1; i < response.data.length; i++) {
+                var capitalized = response.data[i].question.charAt(0).toUpperCase() + response.data[i].question.slice(1);
+                var elmt = i.toString() + ". " + capitalized
+                answer = answer + elmt
+                if (i < response.data.length - 1){
+                  answer = answer + `<br/>`
+                }
               }
+              setChatLog(prevLog => [...prevLog, { user: "gpt", message: answer }])
             }
-            setChatLog(prevLog => [...prevLog, { user: "gpt", message: respon}])
+            else{
+              var respon = response.data[0].answer
+              respon = respon.charAt(0).toUpperCase() + respon.slice(1);
+              setChatLog(prevLog => [...prevLog, { user: "gpt", message: respon }])
+            }
           }
-          else
-          {
+          else {
             if (response.data[0]["answer"] == null){
               const dataStr = response.data.substring(response.data[0]);
               const data = JSON.parse(dataStr);
@@ -68,13 +75,13 @@ function App() {
             else {
               setChatLog(prevLog => [...prevLog, { user: "gpt", message: response.data[0]["answer"]}])
               console.log("dapat jawaban")
-            }
           }
         }
       }
-      else{
-        console.log("No question found in database")
-      }
+    }
+    else{
+      console.log("No question found in database")
+    }
     })
     .catch(error => {
       console.log(error);
@@ -146,7 +153,7 @@ const ChatMessage = ({ message }) => {
                 
               </div>
               <div className="message">
-                {message.message}
+              <div dangerouslySetInnerHTML={{__html: message.message}} />
               </div>
             </div>
           </div>
