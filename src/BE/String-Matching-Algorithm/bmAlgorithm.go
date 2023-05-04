@@ -1,6 +1,6 @@
 package Algorithm
 
-func bmSearch(text, pattern string) int {
+func BMSearch(text, pattern string) int {
 	last := buildLast(pattern)
 	n := len(text)
 	m := len(pattern)

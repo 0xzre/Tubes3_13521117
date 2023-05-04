@@ -10,18 +10,10 @@ import (
 
 	Algorithm "BE/String-Matching-Algorithm"
 	"BE/server/models"
-	"BE/server/routes"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 )
-
-// Client Database instance
-var validate = validator.New()
-var Client *mongo.Client = routes.DBinstance()
-var questionCollection *mongo.Collection = routes.OpenCollection(Client, "questions")
 
 // Get response by user input using KMP
 func GetResponseKMP(c *gin.Context) {
@@ -93,8 +85,8 @@ func GetResponseKMP(c *gin.Context) {
 		for _, elmt := range questions {
 
 			// Match using KMP, add into result
-			// fmt.Println(Algorithm.KmpSearch(question, string(elmt["question"].(string))))
-			if Algorithm.KmpSearch(question, string(elmt["question"].(string))) != -1 {
+			// fmt.Println(Algorithm.KMPSearch(question, string(elmt["question"].(string))))
+			if Algorithm.KMPSearch(question, string(elmt["question"].(string))) != -1 {
 				result = append(result, elmt)
 				break
 
@@ -160,7 +152,7 @@ func AddQuestionKMP(c *gin.Context, questionAdded string, answerAdded string, qu
 
 		// If matching with KMP or LCS >= 90%
 		// fmt.Println(Algorithm.LongestCommonSubstring(questionAdded, string(elmt["question"].(string))))
-		if Algorithm.KmpSearch(questionAdded, string(elmt["question"].(string))) != -1 ||
+		if Algorithm.KMPSearch(questionAdded, string(elmt["question"].(string))) != -1 ||
 			Algorithm.LongestCommonSubstring(questionAdded,
 				string(elmt["question"].(string))) >= 90.0 {
 
@@ -231,7 +223,7 @@ func DeleteQuestionKMP(c *gin.Context, questionDeleted string, questions []bson.
 	for _, elmt := range questions {
 
 		// If matching with KMP algorithm or LCS >= 90.0
-		if Algorithm.KmpSearch(questionDeleted, string(elmt["question"].(string))) != -1 ||
+		if Algorithm.KMPSearch(questionDeleted, string(elmt["question"].(string))) != -1 ||
 			Algorithm.LongestCommonSubstring(questionDeleted, string(elmt["question"].(string))) >= 90.0 {
 
 			// Delete in database
