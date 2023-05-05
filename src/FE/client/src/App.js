@@ -152,6 +152,12 @@ function App() {
     ,[chatLog]
   );
 
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState('kmp');
+
+  function handleToggleAlgorithm() {
+    setSelectedAlgorithm(selectedAlgorithm === 'kmp' ? 'bm' : 'kmp');
+  }
+
   return (
     <div className="App">
       <aside className="sidemenu">
@@ -160,6 +166,14 @@ function App() {
             +
           </span>
           New chat
+        </div>
+        <div class="algorithm-toggle-container">
+          <span class="toggle-label">BM</span>
+          <label class="kmp-bm-toggle">
+            <input type="checkbox" id="kmp-bm-toggle-checkbox" class="kmp-bm-toggle-checkbox" onChange={handleToggleAlgorithm}/>
+            <span class="kmp-bm-toggle-slider"></span>
+          </label>
+          <span class="toggle-label">KMP</span>
         </div>
       </aside>
       <section className="chatbox">
