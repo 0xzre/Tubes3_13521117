@@ -35,7 +35,7 @@ function App() {
   
   function getAnswerKMP(question){
     var encodedInput = encodeURIComponent(question);
-    var url = `http://localhost:5000/answer/KMP/${encodedInput}`;
+    var url = `/response/KMP/${encodedInput}`;
 
     axios.get(url, {
       responseType: 'json'

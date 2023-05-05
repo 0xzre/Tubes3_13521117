@@ -1,28 +1,27 @@
 package main
 
 import (
-	"os"
-
 	"BE/controller"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000"
-	}
+	r := gin.Default()
+	// Dont worry about this line just yet, it will make sense in the Dockerise bit!
+	r.Use(static.Serve("/", static.LocalFile("./web", true)))
+	router := r.Group("/response")
 
-	router := gin.New()
 	router.Use(gin.Logger())
 	router.Use(cors.Default())
 
 	// Endpoints used
-	router.GET("/answer/KMP/:question", controller.GetResponseKMP)
-	// router.GET("/answer/BM/:question", controller.GetResponseBM)
+	router.GET("/KMP/:question", controller.GetResponseKMP)
+	// router.GET("/BM/:question", controller.GetResponseBM)
 
 	// Runs the server and allows it to listen to requests
-	router.Run("localhost:" + port)
+	// Runs in localhost 5000
+	r.Run()
 }
