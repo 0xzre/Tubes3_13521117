@@ -24,18 +24,19 @@ function App() {
     setInput("");
     console.log("Input sent");
 
+    getAnswer(input);
+  }
+  
+  function getAnswer(question){
+    var encodedInput = encodeURIComponent(question);
+    
     //TODO
     //MAKE TOGGLE KMP AND BM
     //if toggle KMP
-    getAnswerKMP(input);
+    var url = `/response/KMP/${encodedInput}`;
     
     //if toggle BM
-    // getAnswerBM(input.toLowerCase());
-  }
-  
-  function getAnswerKMP(question){
-    var encodedInput = encodeURIComponent(question);
-    var url = `/response/KMP/${encodedInput}`;
+    // var url = `/response/BM/${encodedInput}`;
 
     axios.get(url, {
       responseType: 'json'
