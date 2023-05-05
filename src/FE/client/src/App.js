@@ -6,17 +6,11 @@ import axios from "axios"
 function App() {
 
   const [input, setInput] = useState("");
-  const [chatLog, setChatLog] = useState([{
-    user: "gpt",
-    message: "hewo aim bongt"
-  }, {
-    user: "me",
-    message: "hewo bongt"
-  }, {
-    user: "gpt",
-    message: "hewo aim bongt"
-  }
-  ]);
+  const [chatLog, setChatLog] = useState([]);
+  // Make question answer history and fill with question and answer from database
+  const [questionAnswerHistory, setQuestionAnswerHistory] = useState([]);
+
+  
 
   async function handleSubmit(e){
     e.preventDefault();
@@ -45,14 +39,19 @@ function App() {
   
 async function getAnswer(question){
       var encodedInput = encodeURIComponent(question);
-    
-      //TODO
-      //MAKE TOGGLE KMP AND BM
+      var url;
+      
       //if toggle KMP
-      var url = `/response/KMP/${encodedInput}`;
+      if(selectedAlgorithm === 'kmp') {
+        url = `/response/KMP/${encodedInput}`;
+        console.log("KMP");
+      }
       
       //if toggle BM
-      // var url = `/response/BM/${encodedInput}`;
+      else if(selectedAlgorithm === 'bm'){
+        url = `/response/BM/${encodedInput}`;
+        console.log("BM");
+      }
 
       axios.get(url, {
         responseType: 'json'
@@ -171,7 +170,7 @@ async function getAnswer(question){
     ,[chatLog]
   );
 
-  const [selectedAlgorithm, setSelectedAlgorithm] = useState('kmp');
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState('bm');
 
   function handleToggleAlgorithm() {
     setSelectedAlgorithm(selectedAlgorithm === 'kmp' ? 'bm' : 'kmp');
@@ -194,6 +193,27 @@ async function getAnswer(question){
           </label>
           <span class="toggle-label">KMP</span>
         </div>
+
+        <div className='question-answer-history-container'>
+          <div className='question-answer-history-title'>
+            Question Answer History
+          </div>
+          <div className='question-answer-history'>
+            {
+              questionAnswerHistory.map((questionAnswer, index) => (
+                <div className='question-answer' key={index}>
+                  <div className='question-answer-question'>
+                    {questionAnswer.question}
+                  </div>
+                  <div className='question-answer-answer'>
+                    {questionAnswer.answer}
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
       </aside>
       <section className="chatbox">
         <div className="chat-log">

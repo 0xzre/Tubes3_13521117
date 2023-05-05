@@ -18,7 +18,7 @@ func main() {
 
 	// Endpoints used
 	router.GET("/KMP/:question", controller.GetResponseKMP)
-	// router.GET("/BM/:question", controller.GetResponseBM)
+	router.GET("/BM/:question", controller.GetResponseBM)
 
 	// Runs the server and allows it to listen to requests
 	// Runs in localhost 5000
