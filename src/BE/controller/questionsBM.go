@@ -39,9 +39,6 @@ func GetResponseBM(c *gin.Context) {
 	}
 
 	//TODO
-	//parse input dgn pemisah titik untuk baca lebih dari satu perintah/pertanyaan
-
-	//TODO
 	//CALCULATOR
 	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return hasilnya
 

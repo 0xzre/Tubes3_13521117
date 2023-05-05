@@ -22,9 +22,18 @@ function App() {
     e.preventDefault();
     setChatLog(prevLog => [...prevLog, { user: "me", message: `${input}` }]);
     setInput("");
-    console.log("Input sent");
+    console.log("Input sent:");
 
-    getAnswer(input);
+    // Check if there is more than 1 sentences with delimiter ". "
+    if (input.includes(". ")){
+      const sentences = input.split(". ").map(sentence => sentence.trim());
+      sentences.forEach((sentence) => {
+        console.log(sentence);
+        getAnswer(sentence);
+      });
+    } else { // Only 1 sentence
+      getAnswer(input);
+    }
   }
   
   function getAnswer(question){
