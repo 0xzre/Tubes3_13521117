@@ -38,14 +38,6 @@ func GetResponseKMP(c *gin.Context) {
 		return
 	}
 
-	//TODO
-	//CALCULATOR
-	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return hasilnya
-
-	//TODO
-	//TANGGAL
-	//REGEX dan cara parsing inputnya, trus bikin method baca input untuk return harinya
-
 	// Get all listed question in database: "list pertanyaan"
 	regexGetAll := regexp.MustCompile(`^(?:\s+)?list(?:\s+)?pertanyaan(?:\s+)?(.+?)?(?:\s*|\b)$`)
 	matchGetAll := regexGetAll.MatchString(question)
