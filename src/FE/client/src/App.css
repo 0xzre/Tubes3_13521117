@@ -186,3 +186,12 @@
 .kmp-bm-toggle-label {
   margin-left: 1rem;
 }
+
+.question-answer-history-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color:white;
+}

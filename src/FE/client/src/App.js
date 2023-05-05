@@ -9,18 +9,19 @@ function App() {
 
   const [input, setInput] = useState("");
   const [chatLog, setChatLog] = useState([]);
-  // Make question answer history and fill with question and answer from database
-  const [questionAnswerHistory, setQuestionAnswerHistory] = useState([]);
-
-  
+  const [history, setHistory] = useState([]); // history list
+  var session = 1;
 
   async function handleSubmit(e){
     e.preventDefault();
+
     setChatLog(prevLog => [...prevLog, { user: "me", message: `${input}` }]);
+    
     setInput("");
     console.log("Input sent:");
     if (input === "") {
       setChatLog(prevLog => [...prevLog, { user: "gpt", message: `Masukkan input!` }]);
+      // setHistory(prevHistory => [...prevHistory, {question: input, answer: `Masukkan input!` }]);
       return
     }
 
@@ -48,24 +49,29 @@ async function getAnswer(question){
     if (date.isValidDate(question)) { // if Valid input date dd/mm/yyyy or d/m/yyyy
       const answer = date.getDay(question)
       setChatLog(prevLog => [...prevLog, { user: "gpt", message: `Tanggal tersebut adalah hari ${answer}` }]);
+      setHistory(prevHistory => [...prevHistory, `Tanggal tersebut adalah hari ${answer}`]);
     }
     
     else if (regexCalc.test(question)) { // not valid as a date, but valid as calculator (cannot retrieve minus sign)
       const answer = calculator.calculate(question)
       setChatLog(prevLog => [...prevLog, { user: "gpt", message: `Perintah dianggap operasi matematika dengan hasil ${answer}` }]);
-    
+      setHistory(prevHistory => [...prevHistory, `Perintah dianggap operasi matematika dengan hasil ${answer}`]);
+
     } else { // not valid as both
       setChatLog(prevLog => [...prevLog, { user: "gpt", message: `Input yang mengandung tanda '/' haruslah operasi matematika atau tanggal yang valid, bukan perintah` }]);
+      setHistory(prevHistory => [...prevHistory, `Input yang mengandung tanda '/' haruslah operasi matematika atau tanggal yang valid, bukan perintah`]);
     }
   
   } else if (regexCalc.test(question)) { // valid as calculator (cannot retrieve minus sign)
     const answer = calculator.calculate(question)
     setChatLog(prevLog => [...prevLog, { user: "gpt", message: `Perintah dianggap operasi matematika dengan hasil ${answer}` }]);
+    setHistory(prevHistory => [...prevHistory, `Perintah dianggap operasi matematika dengan hasil ${answer}`]);
   
   } else{ // check if a valid question
 
     if (question.includes('/')){ // cannot retrieve backslash (/) character into endpoints
       setChatLog(prevLog => [...prevLog, { user: "gpt", message: `Input yang mengandung tanda '/' haruslah operasi matematika atau tanggal yang valid, bukan perintah` }]);
+      setHistory(prevHistory => [...prevHistory, `Input yang mengandung tanda '/' haruslah operasi matematika atau tanggal yang valid, bukan perintah`]);
     
     } else {
       var encodedInput = encodeURIComponent(question);
@@ -88,7 +94,8 @@ async function getAnswer(question){
       }).then(response => {
         if(response.status === 200) {
           if (response.data == null) {
-            setChatLog(prevLog => [...prevLog, { user: "gpt", message: "Pertanyaan tidak ditemukan, silakan tambahkan pertanyaan"}])
+            setChatLog(prevLog => [...prevLog, { user: "gpt", message: "Pertanyaan tidak ditemukan, silakan tambahkan pertanyaan"}]);
+            setHistory(prevHistory => [...prevHistory, `Pertanyaan tidak ditemukan, silakan tambahkan pertanyaan`]);
             console.log("Data not found");
           }
 
@@ -110,6 +117,7 @@ async function getAnswer(question){
                     }
                   }
                   setChatLog(prevLog => [...prevLog, { user: "gpt", message: suggestions }]);
+                  setHistory(prevHistory => [...prevHistory, suggestions]);
                   console.log("Get response from listing suggestions");
                 }
 
@@ -129,6 +137,7 @@ async function getAnswer(question){
                       }
                     }
                     setChatLog(prevLog => [...prevLog, { user: "gpt", message: questionList }]);
+                    setHistory(prevHistory => [...prevHistory, questionList]);
                     console.log("Get response from listing questions");
                   }
                   
@@ -137,6 +146,7 @@ async function getAnswer(question){
                     var gptResponse = response.data[0].answer;
                     gptResponse = gptResponse.charAt(0).toUpperCase() + gptResponse.slice(1);
                     setChatLog(prevLog => [...prevLog, { user: "gpt", message: gptResponse }]);
+                    setHistory(prevHistory => [...prevHistory, gptResponse]);
                     console.log("Get response from the most normal case");
                   }
                 }
@@ -155,6 +165,7 @@ async function getAnswer(question){
                     dataStr = response.data.substring(response.data[0]);
                     const data = JSON.parse(dataStr);
                     setChatLog(prevLog => [...prevLog, { user: "gpt", message: data[0]["answer"]}]);
+                    setHistory(prevHistory => [...prevHistory, data[0]["answer"]]);
                     console.log("Get response from parsing leading number");
                   }
                   
@@ -163,12 +174,14 @@ async function getAnswer(question){
                     const combinedArray = response.data.replace(/\]\[/g, ',');
                     const parsedArray = JSON.parse(combinedArray);
                     setChatLog(prevLog => [...prevLog, { user: "gpt", message: parsedArray[0]["answer"]}]);
+                    setHistory(prevHistory => [...prevHistory, parsedArray[0]["answer"]]);
                     console.log("Get response from parsing more than 1 array map");
                   }
                 }
 
                 else { // Valid array, directly retrieve the data
                   setChatLog(prevLog => [...prevLog, { user: "gpt", message: response.data[0]["answer"]}]);
+                  setHistory(prevHistory => [...prevHistory, response.data[0]["answer"]]);
                   console.log("Get Response from direct valid array map");
               }
             }
@@ -188,6 +201,8 @@ async function getAnswer(question){
 }
 
   function clearLog(){
+    setHistory(prevHistory => [...prevHistory, { id: session, log: chatLog}]);
+    session++;
     setChatLog([]);
   }
 
@@ -228,20 +243,20 @@ async function getAnswer(question){
 
         <div className='question-answer-history-container'>
           <div className='question-answer-history-title'>
-            Question Answer History
+            History
           </div>
           <div className='question-answer-history'>
             {
-              questionAnswerHistory.map((questionAnswer, index) => (
-                <div className='question-answer' key={index}>
-                  <div className='question-answer-question'>
-                    {questionAnswer.question}
-                  </div>
-                  <div className='question-answer-answer'>
-                    {questionAnswer.answer}
-                  </div>
-                </div>
-              ))
+              // history.map((questionAnswer, index) => (
+              //   <div className='question-answer' key={index}>
+              //     <div className='question-answer-question'>
+              //       {questionAnswer.log.message}
+              //     </div>
+              //     <div className='question-answer-answer'>
+              //       {questionAnswer.log.message}
+              //     </div>
+              //   </div>
+              // ))
             }
           </div>
         </div>
