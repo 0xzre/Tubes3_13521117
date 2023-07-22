@@ -85,7 +85,7 @@ async function getAnswer(question){
         console.log("BM");
       }
 
-      axios.get(url, {
+      axios.get("https://cuakgpt-api.fly.dev" + url, {
         responseType: 'json'
       }).then(response => {
         if(response.status === 200) {
@@ -206,7 +206,7 @@ async function getAnswer(question){
 
   useEffect(() => {
     const url = '/response/history';
-    axios.get(url, {
+    axios.get("https://cuakgpt-api.fly.dev" + url, {
       responseType: 'json'
     }).then(response => {
       if(response.status === 200) {
