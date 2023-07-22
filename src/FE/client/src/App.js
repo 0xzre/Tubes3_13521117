@@ -3,6 +3,7 @@ import './normal.css';
 import History from './History';
 import { useRef, useState, useEffect } from 'react'
 import axios from "axios"
+import DOMPurify from 'dompurify';
 const calculator = require('./calculator')
 const date = require('./date')
 
@@ -287,18 +288,21 @@ async function getAnswer(question){
 }
 
 const ChatMessage = ({ message }) => {
-  return(
-          <div className={`chat-message ${message.user === "gpt" && "chatgpt" }`}>
-            <div className="chat-message-center">
-              <div className= {`avatar ${message.user === "gpt" && "chatgpt" }`}>
-                
-              </div>
-              <div className="message">
-              <div dangerouslySetInnerHTML={{__html: message.message}} />
-              </div>
-            </div>
-          </div>
-  )
-}
+  const sanitizedMessage = DOMPurify.sanitize(message.message);
+  const sanitizedUser = DOMPurify.sanitize(message.user);
+
+  return (
+    <div className={`chat-message ${sanitizedUser === "gpt" && "chatgpt"}`}>
+      <div className="chat-message-center">
+        <div className={`avatar ${sanitizedUser === "gpt" && "chatgpt"}`}>
+          {/* Avatar content */}
+        </div>
+        <div className="message">
+          <div dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default App;
