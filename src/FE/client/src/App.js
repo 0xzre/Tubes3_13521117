@@ -1,5 +1,4 @@
 import './App.css';
-import './normal.css';
 import History from './History';
 import { useRef, useState, useEffect } from 'react'
 import axios from "axios"
