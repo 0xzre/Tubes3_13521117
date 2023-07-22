@@ -205,6 +205,13 @@ func AddQuestionKMP(c *gin.Context, questionAdded string, answerAdded string, qu
 		}
 	}
 
+	// Question is empty
+	if questionAdded == "" {
+		flag := bson.M{"answer": "Pertanyaan tidak boleh kosong!"}
+		result = append(result, flag)
+		return
+	}
+
 	// Add question to database
 	_, insertErr := questionCollection.InsertOne(ctx, question)
 	if insertErr != nil {

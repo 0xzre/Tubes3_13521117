@@ -195,3 +195,11 @@
   padding: 20px;
   color:white;
 }
+
+.question-answer-history {
+  padding-top: 20px;
+  overflow-y: auto;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+}

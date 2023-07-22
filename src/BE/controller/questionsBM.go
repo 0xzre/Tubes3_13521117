@@ -204,6 +204,14 @@ func AddQuestionBM(c *gin.Context, questionAdded string, answerAdded string, que
 			return
 		}
 	}
+	
+	// Question is empty
+	if questionAdded == "" {
+		flag := bson.M{"answer": "Pertanyaan tidak boleh kosong!"}
+		result = append(result, flag)
+		c.JSON(http.StatusOK, result)
+		return
+	}
 
 	// Add question to database
 	_, insertErr := questionCollection.InsertOne(ctx, question)
